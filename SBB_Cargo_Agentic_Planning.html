@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Planning · SBB Cargo</title>
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f5f4f1;--bg3:#e8e6e1;
+  --tx:#1c1c1a;--t2:#5f5f5c;
+  --b1:rgba(28,28,26,0.11);--b2:rgba(28,28,26,0.20);
+  --red:#EB0000;--rm:8px;--rl:12px;
+  --fs:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --fm:Menlo,Monaco,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fs);background:var(--bg);color:var(--tx);padding:24px 28px;max-width:980px;margin:0 auto;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:13px}
+button{font-family:inherit}
+/* Gantt cells */
+.g{padding:7px 10px;background:var(--bg2);border:0.5px solid var(--b1);border-radius:0;cursor:pointer;transition:background .15s}
+.g:hover{background:var(--bg);border-color:var(--b2)}
+.g.on{background:var(--bg)}
+/* Case 9 pill */
+.c9{padding:9px 12px;background:var(--bg2);border:0.5px solid var(--b1);border-radius:0;cursor:pointer;display:flex;align-items:center;gap:12px}
+.c9:hover,.c9.on{background:var(--bg)}
+/* Agent cards */
+.ac{background:var(--bg2);border:0.5px solid var(--b1);border-radius:var(--rm);padding:12px 14px;flex:1;display:flex;flex-direction:column}
+.mc{background:var(--bg2);border:0.5px solid var(--b1);border-top:2px solid #185FA5;border-radius:var(--rm);padding:9px 12px;display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-bottom:7px;display:block}
+/* Section header */
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:0.5px solid var(--b1)}
+/* Nav bottom */
+.nav-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding-top:14px;border-top:0.5px solid var(--b1)}
+/* Problem cards */
+.prob{background:var(--bg2);border:0.5px solid var(--b1);border-radius:var(--rm);padding:16px;flex:1}
+/* Hint text */
+.hint{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div style="display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:0.5px solid var(--b1);margin-bottom:18px">
+
+  <!-- SBB Cargo logo -->
+  <div style="display:flex;align-items:center;gap:9px;flex-shrink:0">
+    <svg width="64" height="40" viewBox="0 0 84 52" style="display:block">
+      <rect width="84" height="52" fill="#EB0000" rx="3"/>
+      <polygon points="5,8 57,8 57,3 79,14 57,25 57,20 5,20" fill="white"/>
+      <polygon points="79,29 27,29 27,24 5,36 27,48 27,43 79,43" fill="white"/>
+    </svg>
+    <div style="font-size:14px;font-weight:500;color:var(--tx)">SBB Cargo</div>
+  </div>
+
+  <!-- Divider -->
+  <div style="width:1px;height:32px;background:var(--b2);margin:0 5px"></div>
+
+  <!-- Microsoft logo -->
+  <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5px;width:22px;height:22px">
+      <div style="background:#F25022;border-radius:1px"></div>
+      <div style="background:#7FBA00;border-radius:1px"></div>
+      <div style="background:#00A4EF;border-radius:1px"></div>
+      <div style="background:#FFB900;border-radius:1px"></div>
+    </div>
+    <div style="font-size:13px;color:var(--tx)">Microsoft</div>
+  </div>
+
+  <!-- Divider -->
+  <div style="width:1px;height:32px;background:var(--b2);margin:0 5px"></div>
+
+  <!-- Agentic Planning -->
+  <div style="font-size:13px;color:var(--t2)">Agentic Planning</div>
+
+  <div style="flex:1"></div>
+
+  <!-- Numbered tab navigation -->
+  <div style="display:flex;gap:3px;align-items:center">
+    <button id="bt0" onclick="sw(0)" style="padding:6px 14px;border-radius:6px;border:0.5px solid var(--red);background:var(--red);color:#fff;font-size:12px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px">
+      <span style="font-family:var(--fm);font-size:10px;opacity:0.85">01</span>Intro &amp; Vision
+    </button>
+    <button id="bt1" onclick="sw(1)" style="padding:6px 14px;border-radius:6px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);font-size:12px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px">
+      <span style="font-family:var(--fm);font-size:10px">02</span>Process Map
+    </button>
+    <button id="bt2" onclick="sw(2)" style="padding:6px 14px;border-radius:6px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);font-size:12px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px">
+      <span style="font-family:var(--fm);font-size:10px">03</span>Agent Architecture
+    </button>
+  </div>
+
+</div>
+
+
+<!-- ========== VIEW 0: INTRO & VISION ========== -->
+<div id="v0">
+
+  <!-- 1. Ausgangslage -->
+  <div class="sh">
+    <span style="background:var(--red);color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">01</span>
+    <span style="font-size:18px;font-weight:500">The challenge</span>
+    <span style="font-size:12px;color:var(--t2)">Why SBB Cargo needs to change now</span>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:20px">
+
+    <div class="prob" style="border-top:3px solid var(--red)">
+      <div style="font-size:11px;font-family:var(--fm);color:var(--red);margin-bottom:8px">A1 &middot; Direct costs</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px">Production costs too high</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6">Loco and crew are planned in isolated silos. Synergies between line and yard operations remain systematically unexploited. Every suboptimally planned loco or crew hour is direct cost loss.</div>
+    </div>
+
+    <div class="prob" style="border-top:3px solid #854F0B">
+      <div style="font-size:11px;font-family:var(--fm);color:#854F0B;margin-bottom:8px">A2 &middot; Overhead</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px">Planning overhead too high</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6">Short-term planning and yard planning are almost entirely manual. Slow reaction to change, knowledge concentrated in few individuals, overhead that grows with volume.</div>
+    </div>
+
+    <div class="prob" style="border-top:3px solid #185FA5">
+      <div style="font-size:11px;font-family:var(--fm);color:#185FA5;margin-bottom:8px">A3 &middot; Revenue</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px">Revenue under structural pressure</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6">EWLV carries the demand risk &mdash; trains run regardless of booking levels. The network cannot adapt fast enough to actual demand, creating chronic overcapacity at low bookings.</div>
+    </div>
+
+  </div>
+
+  <!-- 2. Vision -->
+  <div class="sh">
+    <span style="background:#0F6E56;color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">02</span>
+    <span style="font-size:18px;font-weight:500">The vision</span>
+  </div>
+
+  <div style="background:var(--bg2);border:0.5px solid var(--b1);border-left:3px solid #0F6E56;border-radius:var(--rm);padding:18px;margin-bottom:20px">
+    <div style="font-size:14px;font-weight:500;line-height:1.5;margin-bottom:10px">
+      A network of specialized AI agents operates the full planning chain autonomously &mdash; from customer inquiry to final crew assignment &mdash; continuously, 24/7.
+    </div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7">
+      A small group of experts monitors for exceptions and takes strategic decisions. IVU/CAROS and Orca remain the official systems of record. All agents write their outputs there. The human expert retains final responsibility &mdash; the agents optimize, calculate, and recommend.
+    </div>
+  </div>
+
+  <!-- 3. How it works: Chatbot vs Agent -->
+  <div class="sh">
+    <span style="background:#534AB7;color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">03</span>
+    <span style="font-size:18px;font-weight:500">How it works &mdash; from chatbot to autonomous agent</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+
+    <!-- Chatbot -->
+    <div style="background:var(--bg2);border:0.5px solid var(--b1);border-radius:var(--rm);padding:16px">
+      <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:14px">Classic AI &mdash; Chatbot</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0 16px">
+        <div style="background:var(--bg3);border:0.5px solid var(--b2);border-radius:5px;padding:7px 22px;font-size:12px;color:var(--t2)">User prompt</div>
+        <div style="font-size:16px;color:var(--b2)">&#8595;</div>
+        <div style="background:#1c1c1a;border-radius:5px;padding:8px 22px;font-size:13px;font-weight:500;color:#fff">AI Model</div>
+        <div style="font-size:16px;color:var(--b2)">&#8595;</div>
+        <div style="background:var(--bg3);border:0.5px solid var(--b2);border-radius:5px;padding:7px 22px;font-size:12px;color:var(--t2)">Answer text</div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.65;border-top:0.5px solid var(--b1);padding-top:12px">
+        One question, one answer. No memory between turns. No access to systems. No autonomous action.
+      </div>
+    </div>
+
+    <!-- Agent interactive -->
+    <div style="background:var(--bg2);border:0.5px solid var(--b1);border-radius:var(--rm);padding:16px;display:flex;flex-direction:column">
+      <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:14px">Agentic AI &mdash; Agent</div>
+      <div id="agent-display" style="flex:1;min-height:148px"></div>
+      <button id="agent-btn" onclick="agentStep()" style="margin-top:12px;padding:8px 16px;border-radius:6px;border:none;background:var(--red);color:#fff;font-size:12px;cursor:pointer;font-weight:500;align-self:flex-start"></button>
+    </div>
+
+  </div>
+
+  <!-- 4. MCP -->
+  <div class="sh">
+    <span style="background:#BA7517;color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">04</span>
+    <span style="font-size:18px;font-weight:500">MCP &mdash; the universal plug between agents and systems</span>
+  </div>
+
+  <div style="font-size:13px;color:var(--t2);line-height:1.7;padding:12px 14px;background:var(--bg2);border-radius:var(--rm);border:0.5px solid var(--b1);margin-bottom:12px">
+    <strong style="color:var(--tx)">MCP (Model Context Protocol)</strong> is an open standard that solves a fundamental problem: AI agents need access to data across completely different systems. MCP acts as a universal adapter &mdash; each system (CAROS, GO!, Jira, Octopus) gets a single MCP connection once. After that, every agent can communicate with every system without additional integration work.
+  </div>
+
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button id="mb0" onclick="setMCP(0)" style="padding:6px 16px;border-radius:6px;border:0.5px solid #A32D2D;background:#A32D2D;color:#fff;font-size:12px;cursor:pointer;font-weight:500">Without MCP</button>
+    <button id="mb1" onclick="setMCP(1)" style="padding:6px 16px;border-radius:6px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);font-size:12px;cursor:pointer;font-weight:500">With MCP</button>
+  </div>
+
+  <div style="background:var(--bg2);border:0.5px solid var(--b1);border-radius:var(--rm);padding:16px;margin-bottom:12px">
+    <svg id="mcp-svg" viewBox="0 0 700 240" style="width:100%;display:block">
+      <rect x="10" y="45" width="122" height="30" rx="4" fill="#EB0000"/>
+      <text x="71" y="64" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">Offer Agent</text>
+      <rect x="10" y="105" width="122" height="30" rx="4" fill="#EB0000"/>
+      <text x="71" y="124" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">Schedule Agent</text>
+      <rect x="10" y="165" width="122" height="30" rx="4" fill="#EB0000"/>
+      <text x="71" y="184" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">Staffing Agent</text>
+      <rect x="568" y="22" width="122" height="30" rx="4" fill="#185FA5"/>
+      <text x="629" y="41" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">CAROS / IVU</text>
+      <rect x="568" y="82" width="122" height="30" rx="4" fill="#185FA5"/>
+      <text x="629" y="101" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">GO! / GO! Lok</text>
+      <rect x="568" y="142" width="122" height="30" rx="4" fill="#185FA5"/>
+      <text x="629" y="161" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">Jira / Orca</text>
+      <rect x="568" y="192" width="122" height="30" rx="4" fill="#185FA5"/>
+      <text x="629" y="211" text-anchor="middle" fill="white" font-size="11" font-family="-apple-system,Helvetica,sans-serif">Octopus</text>
+      <g id="g-without">
+        <line x1="132" y1="60" x2="568" y2="37" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="60" x2="568" y2="97" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="60" x2="568" y2="157" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="60" x2="568" y2="207" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="120" x2="568" y2="37" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="120" x2="568" y2="97" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="120" x2="568" y2="157" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="120" x2="568" y2="207" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="180" x2="568" y2="37" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="180" x2="568" y2="97" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="180" x2="568" y2="157" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <line x1="132" y1="180" x2="568" y2="207" stroke="#999" stroke-width="1.2" opacity="0.5"/>
+        <text x="350" y="232" text-anchor="middle" fill="#A32D2D" font-size="11" font-family="-apple-system,Helvetica,sans-serif" font-weight="500">12 custom integrations &mdash; every new connection requires individual development</text>
+      </g>
+      <g id="g-with" display="none">
+        <rect x="289" y="100" width="122" height="40" rx="5" fill="#BA7517"/>
+        <text x="350" y="118" text-anchor="middle" fill="white" font-size="12" font-family="-apple-system,Helvetica,sans-serif" font-weight="500">MCP</text>
+        <text x="350" y="133" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-size="10" font-family="-apple-system,Helvetica,sans-serif">Universal Protocol</text>
+        <line x1="132" y1="60" x2="289" y2="120" stroke="#EB0000" stroke-width="1.8" opacity="0.7"/>
+        <line x1="132" y1="120" x2="289" y2="120" stroke="#EB0000" stroke-width="1.8" opacity="0.7"/>
+        <line x1="132" y1="180" x2="289" y2="120" stroke="#EB0000" stroke-width="1.8" opacity="0.7"/>
+        <line x1="411" y1="120" x2="568" y2="37" stroke="#185FA5" stroke-width="1.8" opacity="0.7"/>
+        <line x1="411" y1="120" x2="568" y2="97" stroke="#185FA5" stroke-width="1.8" opacity="0.7"/>
+        <line x1="411" y1="120" x2="568" y2="157" stroke="#185FA5" stroke-width="1.8" opacity="0.7"/>
+        <line x1="411" y1="120" x2="568" y2="207" stroke="#185FA5" stroke-width="1.8" opacity="0.7"/>
+        <text x="350" y="232" text-anchor="middle" fill="#0F6E56" font-size="11" font-family="-apple-system,Helvetica,sans-serif" font-weight="500">7 standardized connections &mdash; connect each system once, all agents get access automatically</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="nav-bottom">
+    <div style="font-size:12px;color:var(--t2);font-family:var(--fm)">1 / 3</div>
+    <button onclick="sw(1)" style="padding:8px 18px;border-radius:6px;border:0.5px solid var(--red);background:var(--red);color:#fff;font-size:12px;cursor:pointer;font-weight:500">Next: Process Map &#8594;</button>
+  </div>
+
+</div><!-- /v0 -->
+
+
+<!-- ========== VIEW 1: PROCESS MAP ========== -->
+<div id="v1" style="display:none">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <p style="font-size:12px;color:var(--t2)">Each bar is a use case. <strong style="color:var(--tx)">Tap any bar</strong> to see its scope and subcases.</p>
+    <span style="font-size:11px;color:var(--t2);font-family:var(--fm)">2 / 3</span>
+  </div>
+
+  <!-- Stage nodes -->
+  <div style="display:flex;position:relative;margin-bottom:12px">
+    <div style="position:absolute;top:19px;left:30px;right:30px;height:2px;background:var(--red);opacity:.7;z-index:0"></div>
+    <div style="position:absolute;top:23px;left:30px;right:30px;height:1px;background:var(--red);opacity:.15;z-index:0"></div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;z-index:1">
+      <div style="width:37px;height:37px;border-radius:50%;border:2px solid var(--red);background:var(--bg);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:var(--red)"></div></div>
+      <div style="font-size:12px;font-weight:500;text-align:center;line-height:1.35">Customer &amp;<br>Sales</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;z-index:1">
+      <div style="width:37px;height:37px;border-radius:50%;border:2px solid var(--red);background:var(--bg);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:var(--red)"></div></div>
+      <div style="font-size:12px;font-weight:500;text-align:center;line-height:1.35">Network &amp;<br>Timetable</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;z-index:1">
+      <div style="width:37px;height:37px;border-radius:50%;border:2px solid var(--red);background:var(--bg);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:var(--red)"></div></div>
+      <div style="font-size:12px;font-weight:500;text-align:center;line-height:1.35">Resource<br>Planning</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;z-index:1">
+      <div style="width:37px;height:37px;border-radius:50%;border:2px solid var(--red);background:var(--bg);display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:var(--red)"></div></div>
+      <div style="font-size:12px;font-weight:500;text-align:center;line-height:1.35">Staffing</div>
+    </div>
+  </div>
+
+  <!-- Gantt grid -->
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:10px">
+    <div class="g" data-id="1" style="grid-column:1/5;grid-row:1;border-left:3px solid #A32D2D" onclick="sc(1)"><div style="font-size:10px;font-family:var(--fm);color:#A32D2D;margin-bottom:2px">Case 01 &middot; All stages</div><div style="font-size:12px;font-weight:500">Feasibility Process <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="2" style="grid-column:2/4;grid-row:2;border-left:3px solid #A32D2D" onclick="sc(2)"><div style="font-size:10px;font-family:var(--fm);color:#A32D2D;margin-bottom:2px">Case 02 &middot; Timetable &#8594; Resources</div><div style="font-size:12px;font-weight:500">Block Train Order Process <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="3" style="grid-column:2/3;grid-row:3;border-left:3px solid #854F0B" onclick="sc(3)"><div style="font-size:10px;font-family:var(--fm);color:#854F0B;margin-bottom:2px">Case 03</div><div style="font-size:12px;font-weight:500">Capacity Restrictions <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="5" style="grid-column:3/4;grid-row:3;border-left:3px solid #185FA5" onclick="sc(5)"><div style="font-size:10px;font-family:var(--fm);color:#185FA5;margin-bottom:2px">Case 05</div><div style="font-size:12px;font-weight:500">Quarterly Resource Planning <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="7" style="grid-column:4/5;grid-row:3;border-left:3px solid #0F6E56" onclick="sc(7)"><div style="font-size:10px;font-family:var(--fm);color:#0F6E56;margin-bottom:2px">Case 07</div><div style="font-size:12px;font-weight:500">Crew Staffing <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="4" style="grid-column:2/3;grid-row:4;border-left:3px solid #854F0B" onclick="sc(4)"><div style="font-size:10px;font-family:var(--fm);color:#854F0B;margin-bottom:2px">Case 04</div><div style="font-size:12px;font-weight:500">Network Adjustment <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="6" style="grid-column:3/4;grid-row:4;border-left:3px solid #185FA5" onclick="sc(6)"><div style="font-size:10px;font-family:var(--fm);color:#185FA5;margin-bottom:2px">Case 06</div><div style="font-size:12px;font-weight:500">Short-term Planning T-48h <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+    <div class="g" data-id="8" style="grid-column:4/5;grid-row:4;border-left:3px solid #0F6E56" onclick="sc(8)"><div style="font-size:10px;font-family:var(--fm);color:#0F6E56;margin-bottom:2px">Case 08</div><div style="font-size:12px;font-weight:500">Locomotive Staffing <span style="font-size:11px;color:var(--t2)">&#8250;</span></div></div>
+  </div>
+
+  <!-- Case 9 -->
+  <div class="c9" data-id="9" style="border-left:3px solid #534AB7;margin-bottom:10px" onclick="sc(9)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+    <div><div style="font-size:10px;font-family:var(--fm);color:#534AB7;margin-bottom:2px">Case 09 &middot; Cross-cutting across all stages</div><div style="font-size:12px;font-weight:500">Automated Performance Manager</div></div>
+    <span style="margin-left:auto;color:var(--t2);font-size:18px">&#8250;</span>
+  </div>
+
+  <!-- Detail panel -->
+  <div id="dp" style="display:none;border:0.5px solid var(--b2);border-radius:var(--rl);padding:16px 18px;background:var(--bg2)">
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div style="flex-shrink:0;text-align:center"><div id="dn" style="font-size:28px;font-weight:500;font-family:var(--fm);line-height:1;color:var(--red)">C1</div><div style="font-size:10px;color:var(--t2)">Case</div></div>
+      <div style="flex:1"><div id="dt" style="font-size:15px;font-weight:500;margin-bottom:6px"></div><div id="dd" style="font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:10px"></div><div id="ds" style="display:flex;flex-wrap:wrap;gap:5px"></div></div>
+      <button onclick="cd()" style="flex-shrink:0;background:transparent;border:none;cursor:pointer;color:var(--t2);font-size:20px;padding:0;line-height:1">&#215;</button>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="nav-bottom">
+    <button onclick="sw(0)" style="padding:8px 16px;border-radius:6px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);font-size:12px;cursor:pointer;font-weight:500">&#8592; Intro &amp; Vision</button>
+    <button onclick="sw(2)" style="padding:8px 18px;border-radius:6px;border:0.5px solid var(--red);background:var(--red);color:#fff;font-size:12px;cursor:pointer;font-weight:500">Next: Agent Architecture &#8594;</button>
+  </div>
+
+</div><!-- /v1 -->
+
+
+<!-- ========== VIEW 2: AGENT ARCHITECTURE ========== -->
+<div id="v2" style="display:none">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <p style="font-size:12px;color:var(--t2)">Three layers of agents work together. Layer 1 orchestrates, Layer 2 holds domain knowledge, Layer 3 executes.</p>
+    <span style="font-size:11px;color:var(--t2);font-family:var(--fm)">3 / 3</span>
+  </div>
+
+  <!-- Layer 1 -->
+  <div style="margin-bottom:16px">
+    <div class="sh">
+      <span style="background:var(--red);color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">Layer 1</span>
+      <span style="font-size:14px;font-weight:500">Coordination &amp; decision</span>
+      <span style="font-size:12px;color:var(--t2)">Orchestrates the agent organization, interface for planners and management</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="ac" style="border-top:2px solid var(--red)"><span class="dot" style="background:var(--red)"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Coordinator</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Orchestration</div></div>
+      <div class="ac" style="border-top:2px solid var(--red)"><span class="dot" style="background:var(--red)"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Decision Making Manager</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Decision-making</div></div>
+      <div class="ac" style="border-top:2px solid var(--red)"><span class="dot" style="background:var(--red)"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Information Quality Manager</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Data quality</div></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:12px;color:var(--t2);padding:5px 0 12px">&#8595; Task delegation</div>
+
+  <!-- Layer 2 -->
+  <div style="margin-bottom:16px">
+    <div class="sh">
+      <span style="background:#BA7517;color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">Layer 2</span>
+      <span style="font-size:14px;font-weight:500">Subject matter experts</span>
+      <span style="font-size:12px;color:var(--t2)">Domain specialists with deep functional knowledge, supervise operational agents</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="ac" style="border-top:2px solid #BA7517"><span class="dot" style="background:#BA7517"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Key Account Manager Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Sales / customers</div></div>
+      <div class="ac" style="border-top:2px solid #BA7517"><span class="dot" style="background:#BA7517"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Concept Planning Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Timetable &amp; network</div></div>
+      <div class="ac" style="border-top:2px solid #BA7517"><span class="dot" style="background:#BA7517"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Resource Planning Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Loco &amp; crew</div></div>
+      <div class="ac" style="border-top:2px solid #BA7517"><span class="dot" style="background:#BA7517"></span><div style="font-size:13px;font-weight:500;line-height:1.3">Staffing Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2);margin-top:3px">Staffing</div></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:12px;color:var(--t2);padding:5px 0 12px">&#8595; Execution</div>
+
+  <!-- Layer 3 -->
+  <div>
+    <div class="sh">
+      <span style="background:#185FA5;color:#fff;font-size:10px;padding:3px 10px;border-radius:3px;font-family:var(--fm)">Layer 3</span>
+      <span style="font-size:14px;font-weight:500">Operational agents</span>
+      <span style="font-size:12px;color:var(--t2)">Execute process steps, write results directly to CAROS, GO!, Jira, NeTS</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px;padding-left:2px">Sales</div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Offer Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Feasibility &amp; offer</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Demand Forecasting Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Demand forecasting</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Request Routing Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Request classification</div></div></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px;padding-left:2px">Planning</div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Schedule Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Timetable optimization</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Locomotive Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Rotation planning</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">People Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Duty planning</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Capacity Management Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Capacity monitoring</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Interval &amp; Disruption Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Works &amp; disruptions</div></div></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px;padding-left:2px">Staffing</div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Locomotive Staffing Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Loco number assignment</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">People Staffing Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Crew staffing</div></div></div>
+        <div class="mc"><span class="dot" style="background:#185FA5;margin-bottom:0"></span><div><div style="font-size:12px;font-weight:500">Staffing Optimization Agent</div><div style="font-size:11px;font-family:var(--fm);color:var(--t2)">Short-term optimization</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="nav-bottom">
+    <button onclick="sw(1)" style="padding:8px 16px;border-radius:6px;border:0.5px solid var(--b2);background:transparent;color:var(--t2);font-size:12px;cursor:pointer;font-weight:500">&#8592; Process Map</button>
+    <div style="font-size:12px;color:var(--t2);font-family:var(--fm)">End of deck</div>
+  </div>
+
+</div><!-- /v2 -->
+
+
+<script>
+const C={
+  1:{t:'Feasibility Process',c:'#A32D2D',d:'Fully automated end-to-end feasibility process from customer inquiry to response — product-line specific and consistent. Covers block trains, EWLV and KV including automatic NeTS timetable ordering. What takes hours or days today, the agent delivers in minutes regardless of time of day.',s:['1a · Block train feasibility','1b · EWLV feasibility','1c · KV feasibility','1d · NeTS timetable order']},
+  2:{t:'Block Train Order Process',c:'#A32D2D',d:'Digital omnichannel order intake (API, email, phone) with automatic completeness check and timetable slot validation, resource reservation in CAROS, structured order confirmation, and automated change/cancellation processing.',s:['2a · Omnichannel intake','2b · Resource availability check','2c · Confirmation &amp; reservation','2d · Changes &amp; cancellations']},
+  3:{t:'Capacity Restrictions Management',c:'#854F0B',d:'Construction information from SBB Infra (today: PowerPoint slides via email) is automatically structured, analyzed for impact on timetable and resources, and presented as prioritized adaptation proposals. Simple cases are implemented automatically.',s:['3a · Capture &amp; structure','3b · Impact analysis','3c · Adaptation proposals','3d · Communication &amp; follow-up']},
+  4:{t:'Network Adjustment',c:'#854F0B',d:'Continuous load monitoring of all EWLV trains, automatic detection of action needs against defined thresholds, and proactive capacity adjustment proposals — before overcapacity generates costs or bottlenecks frustrate customers.',s:['4a · Load monitoring','4b · Action trigger detection','4c · Adaptation proposals','4d · Implementation &amp; follow-up']},
+  5:{t:'Quarterly Resource Planning',c:'#185FA5',d:'Fully automated, rolling locomotive rotation and integral duty planning for LPC and RCP. Planning runs start automatically whenever relevant inputs change — resource planning becomes a continuous process, not a periodic event.',s:['5a · Rolling planning trigger','5b · Loco rotation planning','5c · Integrated duty planning','5d · Quality check &amp; escalation','5e · DIM → planning units']},
+  6:{t:'Short-term Planning T-48h',c:'#185FA5',d:'Continuous monitoring and fully automated processing of all short-term changes in the 48h horizon. The agent never thinks locally — it always optimizes the full horizon across all resource types simultaneously, around the clock.',s:['6a · Planning status monitoring','6b · Short-term change processing','6c · Prioritization &amp; conflict resolution','6d · CAROS update','6e · Handover to operations']},
+  7:{t:'Crew Staffing',c:'#0F6E56',d:'AI-driven initial staffing for all locations, then pull logic: employees can express preferences within defined operational boundaries. The agent optimizes cross-location and processes absences automatically — from push to self-organization.',s:['7a · Automated initial staffing','7b · Employee pull process','7c · Absence processing','7d · Cross-location optimization','7e · Handover &amp; documentation']},
+  8:{t:'Locomotive Staffing',c:'#0F6E56',d:'Continuous loco inventory monitoring across all locations and automated assignment of specific loco numbers to rotations, accounting for maintenance intervals. Deadhead runs are systematically minimized through proactive positioning.',s:['8a · Loco inventory monitoring','8b · Loco number assignment','8c · Conflict detection &amp; resolution','8d · Deadhead minimization','8e · CAROS update']},
+  9:{t:'Automated Performance Manager',c:'#534AB7',d:'Continuous KPI collection from Octopus, CAROS, GO! and Orca. Proactive deviation alerts, automatic DIM→actual translation, and periodic management reports. The system continuously self-calibrates based on its own recommendation acceptance rate.',s:['9a · KPI collection','9b · Deviation detection &amp; alerts','9c · DIM → actual translation','9d · Periodic reports','9e · Learning &amp; calibration']}
+};
+
+function sc(id){
+  var c=C[id];
+  document.querySelectorAll('[data-id]').forEach(function(e){e.classList.remove('on');});
+  var p=document.querySelector('[data-id="'+id+'"]');
+  if(p)p.classList.add('on');
+  document.getElementById('dn').textContent='C'+id;
+  document.getElementById('dn').style.color=c.c;
+  document.getElementById('dt').textContent=c.t;
+  document.getElementById('dd').textContent=c.d;
+  document.getElementById('ds').innerHTML=c.s.map(function(s){return '<span style="padding:3px 8px;border-radius:3px;background:#e8e6e1;border:0.5px solid rgba(28,28,26,0.11);font-size:11px;font-family:Menlo,Monaco,monospace;color:#5f5f5c">'+s+'</span>';}).join('');
+  document.getElementById('dp').style.display='block';
+}
+function cd(){
+  document.getElementById('dp').style.display='none';
+  document.querySelectorAll('[data-id]').forEach(function(e){e.classList.remove('on');});
+}
+
+function sw(n){
+  var ids=['v0','v1','v2'],btns=['bt0','bt1','bt2'];
+  var on='padding:6px 14px;border-radius:6px;border:0.5px solid var(--red);background:var(--red);color:#fff;font-size:12px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px';
+  var off='padding:6px 14px;border-radius:6px;border:0.5px solid rgba(28,28,26,0.2);background:transparent;color:#5f5f5c;font-size:12px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:6px';
+  ids.forEach(function(id,i){document.getElementById(id).style.display=i===n?'block':'none';});
+  btns.forEach(function(b,i){document.getElementById(b).style.cssText=i===n?on:off;});
+}
+
+// --- AGENT ANIMATION ---
+var agentState=0;
+function renderAgent(){
+  var d=document.getElementById('agent-display');
+  var b=document.getElementById('agent-btn');
+  if(agentState===0){
+    d.innerHTML='<div style="text-align:center;padding:24px 0;border:0.5px dashed rgba(28,28,26,0.2);border-radius:8px">'
+      +'<div style="width:40px;height:40px;border-radius:50%;border:2px solid #EB0000;margin:0 auto 10px;display:flex;align-items:center;justify-content:center"><div style="width:10px;height:10px;border-radius:50%;background:#EB0000"></div></div>'
+      +'<div style="font-size:13px;font-weight:500;color:#1c1c1a">Agent ready</div>'
+      +'<div style="font-size:12px;color:#5f5f5c;margin-top:4px">Awaiting a goal — not a question</div></div>';
+    b.textContent='Give goal →';
+  } else if(agentState===1){
+    var steps=['Load current duties — CAROS','Read availability data — Octopus','Run optimization — GO! Lok','Validate labour law rules','Write final plan — CAROS'];
+    var rows=steps.map(function(s,i){
+      return '<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:0.5px solid rgba(28,28,26,0.08)">'
+        +'<span style="background:rgba(28,28,26,0.08);border-radius:50%;width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-family:Menlo,monospace;flex-shrink:0">'+(i+1)+'</span>'
+        +'<span style="font-size:12px;color:#1c1c1a">'+s+'</span></div>';
+    }).join('');
+    d.innerHTML='<div style="background:rgba(163,45,45,0.07);border-left:3px solid #A32D2D;padding:8px 12px;font-size:12px;font-weight:500;color:#A32D2D;border-radius:0;margin-bottom:10px">'
+      +'Goal: “Plan crew for all locations — Q3 2026”</div>'
+      +'<div style="font-size:12px;font-weight:500;color:#1c1c1a;margin-bottom:6px">Agent planning subtasks:</div>'+rows;
+    b.textContent='Execute →';
+  } else if(agentState===2){
+    var results=[
+      {sys:'CAROS',val:'847 existing duties loaded'},
+      {sys:'Octopus',val:'340 FTE availability records'},
+      {sys:'GO! Lok',val:'Optimization done in 8s'},
+      {sys:'Rules',val:'All constraints satisfied'}
+    ];
+    var rows2=results.map(function(r){
+      return '<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(28,28,26,0.08)">'
+        +'<span style="color:#0F6E56;font-size:14px;line-height:1.3;flex-shrink:0">✓</span>'
+        +'<div><span style="font-size:10px;font-family:Menlo,monospace;color:#185FA5;margin-right:6px">'+r.sys+'</span>'
+        +'<span style="font-size:12px;color:#1c1c1a">'+r.val+'</span></div></div>';
+    }).join('');
+    d.innerHTML='<div style="font-size:12px;font-weight:500;color:#1c1c1a;margin-bottom:8px">Executing…</div>'+rows2;
+    b.textContent='See result →';
+  } else {
+    d.innerHTML='<div style="background:rgba(15,110,86,0.07);border-left:3px solid #0F6E56;padding:10px 13px;border-radius:0;margin-bottom:10px">'
+      +'<div style="font-size:13px;font-weight:500;color:#0F6E56">✓ Complete — plan written to CAROS</div></div>'
+      +'<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px">'
+      +'<div style="font-size:12px;color:#1c1c1a">• 847 duties planned across all locations</div>'
+      +'<div style="font-size:12px;color:#1c1c1a">• 12 LPC↔RCP synergies identified and used</div>'
+      +'<div style="font-size:12px;color:#1c1c1a">• 3 conflicts resolved automatically</div></div>'
+      +'<div style="font-size:12px;color:#5f5f5c;border-top:0.5px solid rgba(28,28,26,0.1);padding-top:8px">Human expert reviews and approves. No manual planning required.</div>';
+    b.textContent='↺ Start over';
+    agentState=-1;
+  }
+}
+function agentStep(){agentState++;renderAgent();}
+
+// --- MCP TOGGLE ---
+function setMCP(n){
+  document.getElementById('g-without').setAttribute('display',n===0?'block':'none');
+  document.getElementById('g-with').setAttribute('display',n===1?'block':'none');
+  var onR='padding:6px 16px;border-radius:6px;border:0.5px solid #A32D2D;background:#A32D2D;color:#fff;font-size:12px;cursor:pointer;font-weight:500';
+  var onG='padding:6px 16px;border-radius:6px;border:0.5px solid #0F6E56;background:#0F6E56;color:#fff;font-size:12px;cursor:pointer;font-weight:500';
+  var off='padding:6px 16px;border-radius:6px;border:0.5px solid rgba(28,28,26,0.2);background:transparent;color:#5f5f5c;font-size:12px;cursor:pointer;font-weight:500';
+  document.getElementById('mb0').style.cssText=n===0?onR:off;
+  document.getElementById('mb1').style.cssText=n===1?onG:off;
+}
+
+// Init
+renderAgent();
+</script>
+</body>
+</html>
